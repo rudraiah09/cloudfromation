@@ -1,0 +1,138 @@
+Resources:
+  jaya:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: Rudra@123
+  EC2Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: Ec2Instance
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "ec2:DescribeInstances"
+              - "ec2:CreateKeyPair"
+              - "ec2:CreateTags"
+              - "ec2:CreateVpc"
+              - "ec2:CreateRouteTable"
+              - "ec2:CreateImage"
+              - "ec2:RunInstances"
+              - "ec2:DescribeSecurityGroups"
+              - "ec2:CreateVolume"
+              - "ec2:CreateNetworkInterface"
+              - "ec2:CreateLaunchTemplate"
+              - "ec2:CreateRoute"
+              - "ec2:CreateSecurityGroup"
+              - "ec2:CreateNetworkAcl"
+              - "ec2:CreateSubnet"
+              - "ec2:DescribeKeyPairs"
+              - "ec2:CreateInstance"
+              - "ec2:CreateKeypair"
+              - "ec2:Describe*"
+            Resource: "*"
+          - Effect: "Deny"
+            Action: 
+              - "ec2:StopInstance"
+              - "ec2:TerminateInstance"
+              - "ec2:RebootInstance"
+            Resource: "*"  
+      Users: 
+        - Ref: jaya
+
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: Rudra9
+
+  mySubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: "ap-south-1a"
+      Tags:
+      - Key: Name
+        Value: Rudra9 
+
+  myInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: "Rudra" 
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: myVPC
+      InternetGatewayId:
+        Ref: myInternetGateway
+
+  myRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: myVPC
+      Tags:
+      - Key: Name 
+        Value: Rudra9
+
+  mySubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: mySubnet
+      RouteTableId:
+        Ref: myRouteTable
+
+  myRoute:
+    Type: AWS::EC2::Route
+    Properties:
+       RouteTableId:
+         Ref: myRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: myInternetGateway
+
+  InstanceSecurityGroup:
+     Type: AWS::EC2::SecurityGroup
+     Properties:
+       GroupDescription: Allow ssh to client host
+       VpcId: 
+         Ref: myVPC
+       SecurityGroupIngress:
+         - IpProtocol: tcp
+           FromPort: 22
+           ToPort: 22
+           CidrIp: 0.0.0.0/0
+
+  NewKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: apple9
+
+  Ec2Instance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: "ami-07d3a50bd29811cd1"
+      InstanceType: "t2.micro"         
+      KeyName: "apple9" 
+      SecurityGroupIds: 
+        - Ref: "InstanceSecurityGroup"
+      SubnetId: 
+          Ref: mySubnet
+      Tags: 
+        - Key: "Name"
+          Value: "Rudra9"      
+
+ 
